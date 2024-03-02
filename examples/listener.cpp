@@ -1,12 +1,7 @@
 
-#include <znr/znr.h>
-#include <znr/this_node.h>
-#include <znr/subscriber.h>
-
-#include <type_traits>
 #include <iostream>
 
-#include <functional>
+#include <znr/znr.h>
 
 int main(int argc, char* argv[])
 {
@@ -16,7 +11,7 @@ int main(int argc, char* argv[])
         std::cout << "Got message: " << msg << std::endl;
     });
 
-    auto sub = znr::this_node::subscribe({"/msg"}, fn);
+    auto sub = znr::subscribe({"/msg"}, fn);
 
     znr::spin();
     return 0;
