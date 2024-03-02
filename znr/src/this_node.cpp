@@ -11,6 +11,8 @@ static z::KeyExpr base_key("znr");
 static z::KeyExpr key_namespace(nullptr);
 static z::Session session(nullptr);
 
+static z::Subscriber node_register(nullptr);
+
 // Resolve key using the following rules:
 //  1. @name starts with '/' -> znr/@prefix/@name
 //  2. @name starts with '~' -> znr/@prefix/@key_namespace/@name[1:]
@@ -34,6 +36,24 @@ auto resolve(const std::string& prefix, const std::string& name) {
     return std::string(key.as_string_view());
 }
 
+void on_node_register(const z::Sample& sample){
+    auto kind = sample.get_kind();
+    if (kind == Z_SAMPLE_KIND_DELETE)
+        return;
+
+    auto encoding = sample.get_encoding();
+    if (encoding != z::Encoding(Z_ENCODING_PREFIX_TEXT_PLAIN)){
+        throw std::runtime_error("Expected text/plain message, received "
+                                 + encoding.get_prefix());
+    }
+
+    auto payload = sample.get_payload().as_string_view();
+    if (payload == key_namespace.as_string_view()){
+        std::cerr << "A new node with the same name was launched. Exiting..." << std::endl;
+        exit(0);
+    }
+}
+
 }// namespace *anon*
 
 void znr::this_node::open_session(const std::string_view& ns)
@@ -43,10 +63,19 @@ void znr::this_node::open_session(const std::string_view& ns)
     session = z::Session(zs.take());
 
     key_namespace = z::KeyExpr(ns.data());
+
+    // advertise that a new node with name = ns is booting..
+    z::PutOptions po; po.set_encoding(z::Encoding(Z_ENCODING_PREFIX_TEXT_PLAIN));
+    session.put("znr/@/register", ns, po);
+    // install: new node name register
+    node_register = z::expect<z::Subscriber>(
+        session.declare_subscriber("znr/@/register", on_node_register));
+
 }
 
 void znr::this_node::close_session()
 {
+    node_register.drop();
     session.drop();
 }
 
