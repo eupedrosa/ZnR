@@ -11,14 +11,17 @@ static z::KeyExpr base_key("znr");
 static z::KeyExpr key_namespace("");
 static z::Session* session = nullptr;
 
+// Resolve key using the following rules:
+//  1. @name starts with '/' -> znr/@prefix/@name
+//  2. @name starts with '~' -> znr/@prefix/@key_namespace/@name[1:]
+//  3. otherwise             -> znr/@prefix/@key_namespace/@name
+//
+//  returns the resolved key string.
 auto resolve(const std::string& prefix, const std::string& name) {
     auto base = base_key.as_keyexpr_view();
     auto ns = key_namespace.as_keyexpr_view();
     auto key = base.join(prefix);
 
-    // 1. @name starts with '/' -> znr/@prefix/@name
-    // 2. @name starts with '~' -> znr/@prefix/@key_namespace/@name[1:]
-    // 3. otherwise             -> znr/@prefix/@key_namespace/@name
 
     if (name[0] == '/') {
         key = key.concat(name);
