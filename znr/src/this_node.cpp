@@ -8,8 +8,8 @@ namespace z = zenohc;
 namespace /* anon */ {
 
 static z::KeyExpr base_key("znr");
-static z::KeyExpr key_namespace("");
-static z::Session* session = nullptr;
+static z::KeyExpr key_namespace(nullptr);
+static z::Session session(nullptr);
 
 // Resolve key using the following rules:
 //  1. @name starts with '/' -> znr/@prefix/@name
@@ -40,22 +40,21 @@ void znr::this_node::open_session(const std::string_view& ns)
 {
     z::Config config;
     z::Session zs = z::expect<z::Session>(z::open(std::move(config)));
-    session = new z::Session(zs.take());
+    session = z::Session(zs.take());
 
     key_namespace = z::KeyExpr(ns.data());
 }
 
 void znr::this_node::close_session()
 {
-    session->drop();
-    delete session;
+    session.drop();
 }
 
 znr::Publisher znr::this_node::advertise(const std::string& topic,
                                          const PublisherOptions& options)
 {
     auto key = resolve("topic", topic);
-    z::Publisher zpub = z::expect<z::Publisher>(session->declare_publisher(key, options));
+    z::Publisher zpub = z::expect<z::Publisher>(session.declare_publisher(key, options));
     return Publisher(zpub);
 }
 
@@ -64,6 +63,6 @@ znr::Subscriber znr::this_node::subscribe(const std::string& topic,
                                           const SubscriberOptions& options)
 {
     auto key = resolve("topic", topic);
-    auto zsub = z::expect<z::Subscriber>(session->declare_subscriber(key, std::move(callback), options));
+    auto zsub = z::expect<z::Subscriber>(session.declare_subscriber(key, std::move(callback), options));
     return Subscriber(zsub);
 }

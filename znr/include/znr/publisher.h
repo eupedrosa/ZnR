@@ -6,10 +6,9 @@
 namespace znr {
 
 struct Publisher {
-    zenohc::Publisher* zpub;
+    zenohc::Publisher zpub;
 
     Publisher(zenohc::Publisher& publisher);
-    virtual ~Publisher() { delete zpub; }
 
     void publish(const char message[]);
     void publish(const std::string& message);

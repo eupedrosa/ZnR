@@ -23,7 +23,6 @@ znr::handle_fn(std::function<void(std::string_view&)> fn) {
 }
 
 znr::Subscriber::Subscriber(z::Subscriber& subscriber)
-{
-    zsub = new z::Subscriber(subscriber.take());
-}
+    : zsub(subscriber.take())
+{}
 
