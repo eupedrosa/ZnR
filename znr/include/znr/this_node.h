@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include <functional>
-
 #include <zenohc.hxx>
 
 #include "znr/publisher.h"
@@ -15,6 +13,8 @@ using SubscriberOptions = zenohc::SubscriberOptions;
 using SubscriberCallback = zenohc::ClosureSample;
 
 namespace this_node {
+
+std::string hostname();
 
 void open_session(const std::string_view& ns);
 void close_session();

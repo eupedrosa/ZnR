@@ -1,7 +1,9 @@
 
-#include "znr/this_node.h"
+#include <unistd.h>
 
 #include <iostream>
+
+#include "znr/this_node.h"
 
 namespace z = zenohc;
 
@@ -56,6 +58,14 @@ void on_node_register(const z::Sample& sample){
 
 }// namespace *anon*
 
+std::string znr::this_node::hostname()
+{
+    char name[HOST_NAME_MAX];
+    gethostname(name, HOST_NAME_MAX);
+
+    return std::string(name);
+}
+
 void znr::this_node::open_session(const std::string_view& ns)
 {
     z::Config config;
@@ -64,13 +74,14 @@ void znr::this_node::open_session(const std::string_view& ns)
 
     key_namespace = z::KeyExpr(ns.data());
 
-    // advertise that a new node with name = ns is booting..
+    // Advertise that a new node with name = ns is booting..
+    // The registration is separated by hostname.
+    auto reg_key = "znr/@/" + hostname() + "/register";
     z::PutOptions po; po.set_encoding(z::Encoding(Z_ENCODING_PREFIX_TEXT_PLAIN));
-    session.put("znr/@/register", ns, po);
+    session.put(reg_key, ns, po);
     // install: new node name register
     node_register = z::expect<z::Subscriber>(
-        session.declare_subscriber("znr/@/register", on_node_register));
-
+        session.declare_subscriber(reg_key, on_node_register));
 }
 
 void znr::this_node::close_session()
