@@ -19,6 +19,11 @@ std::string hostname();
 void open_session(const std::string_view& ns);
 void close_session();
 
+void register_resource(const std::string& name);
+void delete_resource(const std::string& name);
+
+void get_resources(std::vector<std::string>& resources);
+
 Publisher advertise(const std::string& topic,
                     const PublisherOptions& options = {});
 

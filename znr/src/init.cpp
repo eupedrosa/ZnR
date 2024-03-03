@@ -22,9 +22,9 @@ static bool znr_ok = false;
 
 void atexitShutdown(){
 
-    if (znr_ok)
+    if (znr_ok) {
         znr::shutdown();
-
+    }
 }
 
 void simpleSIGINT(int){

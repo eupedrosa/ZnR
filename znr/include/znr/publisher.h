@@ -9,6 +9,7 @@ struct Publisher {
     zenohc::Publisher zpub;
 
     Publisher(zenohc::Publisher& publisher);
+    virtual ~Publisher();
 
     void publish(const char message[]);
     void publish(const std::string& message);
